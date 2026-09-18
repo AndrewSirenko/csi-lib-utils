@@ -29,6 +29,10 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"k8s.io/component-base/metrics"
+	"k8s.io/component-base/metrics/legacyregistry" // Go runtime & process metrics
+	// Anonymously import for rest client, work queue, leader election, and fifo metrics
+	_ "k8s.io/component-base/metrics/prometheus/clientgo"
+	_ "k8s.io/component-base/metrics/prometheus/version" // kubernetes_build_info metrics
 )
 
 const (
@@ -269,6 +273,9 @@ func NewCSIMetricsManagerWithOptions(driverName string, options ...MetricsManage
 	cmm.registerMetrics()
 	cmm.gatherers = prometheus.Gatherers{
 		cmm.GetRegistry(),
+		// FYI this registry includes additional Go & Kubernetes metrics
+		// from import side-effects. See import comments at top of file.
+		legacyregistry.DefaultGatherer,
 	}
 	return &cmm
 }
